@@ -15,7 +15,7 @@ echo ""
 
 # Run CMake configuration
 echo "Configuring the project with CMake..."
-cmake --parallel $(nproc) -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DPICO_SDK_PATH=~/pico-sdk -DPICO_BOARD=pico2 .. > /dev/null 2>&1
+cmake -DPICO_SDK_PATH=~/pico-sdk -DPICO_BOARD=pico2 ..
 echo "CMake configuration completed."
 echo ""
 
@@ -36,9 +36,9 @@ cd .. || { echo "Failed to return to the root directory. Exiting."; exit 1; }
 echo ""
 
 # Load the program
-echo "Loading the program onto the board..."
-sh upload.sh
-echo ""
+# echo "Loading the program onto the board..."
+# sh upload.sh
+# echo ""
 
 
 echo "Build and load process completed successfully!"

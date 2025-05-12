@@ -2,6 +2,4 @@ build/**
 .vscode/**
 output.txt
 data_to_keep/**
-MCP3204-datasheet.pdf
-pico-2-datasheet.pdf
-TLE5501-datasheet.pdf
+datasheets/**

@@ -10,7 +10,9 @@
 #define PIN_MOSI 19
 
 
-#define SAMPLING_FREQ 4
+#define SAMPLING_FREQ 16
+#define TX_FREQ 1
+#define NUM_PERIODS 5
 /*
 CH0 = COS_N
 CH1 = COS_P
@@ -18,8 +20,20 @@ CH2 = SIN_P
 CH3 = SIN_N
 */
 
+
+#define PI 3.14159265358979323846f
+
 const uint32_t samp_period = 1000 / SAMPLING_FREQ;   //ms
 const uint16_t real_samp_freq = 1000 / samp_period; //Hz
+
+
+// const uint16_t block_size = (uint32_t)((SAMPLING_FREQ / TX_FREQ) * NUM_PERIODS); // Number of samples to process in one block
+
+// uint16_t channel0[block_size] = {0};
+// uint16_t channel1[block_size] = {0};
+// uint16_t channel2[block_size] = {0};
+// uint16_t channel3[block_size] = {0};
+// uint16_t current_sample = 0;
 
 
 
@@ -54,6 +68,38 @@ uint16_t read_adc_channel(uint8_t channel) {
     // Extract the 12-bit result from the response
     uint16_t result = ((rx_buf[1] & 0x0F) << 8) | rx_buf[2]; // Combine the last 12 bits
     return result;
+}
+
+typedef struct {
+    float real;
+    float imag;
+    float magnitude;
+} GoertzelResult;
+
+
+void goertzel_filter(uint16_t *block, uint16_t block_size, float sample_rate, float target_freq, GoertzelResult *ret) {
+    int32_t k = (int32_t)(0.5 + ((block_size * target_freq) / sample_rate));
+    float w = (2.0f * PI / block_size) * k;
+    float cos_w = cosf(w);
+    float sin_w = sinf(w);
+    float coeff = 2.0f * cos_w;
+
+    float q1 = 0.0f;
+    float q2 = 0.0f;
+
+    for (uint16_t i = 0; i < block_size; i++) {
+        float q0 = coeff * q1 - q2 + (float)block[i];
+        q2 = q1;
+        q1 = q0;
+    }
+
+    float real = (q1 - q2 * cos_w);
+    float imag = (q2 * sin_w);
+    float magnitude = sqrtf(real * real + imag * imag);
+
+    ret->real = real;
+    ret->imag = imag;
+    ret->magnitude = magnitude;
 }
 
 
@@ -129,16 +175,21 @@ int main() {
         uint16_t ch2 = (uint16_t)((adc_value >> 16) & 0xFFFF);
         uint16_t ch3 = (uint16_t)(adc_value & 0xFFFF);
 
+
+
         int x = ch1 - ch0;
         int y = ch2 - ch3;
 
-        float angle = atan2f((float)y, (float)x);
+        // float angle = atan2f((float)y, (float)x);
         
-        float angle_degrees = angle * (180.0f / 3.14159265f);
-        // angle_degrees = ((int)(angle_degrees + 360.0)) % 360;
-        // angle_degrees = ((int)(angle_degrees + 180.0)) % 360;
+        // float angle_degrees = angle * (180.0f / PI);
+        // // angle_degrees = ((int)(angle_degrees + 360.0)) % 360;
+        // // angle_degrees = ((int)(angle_degrees + 180.0)) % 360;
 
-        printf("Angle: %.2f degrees\r\n", angle_degrees);
+        // printf("Angle: %.2f degrees\r\n", angle_degrees);
+
+        printf("%d,%d\n",x ,y);
+
 
         fflush(stdout);
         stdio_flush();

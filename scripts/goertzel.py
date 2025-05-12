@@ -8,7 +8,7 @@ NUM_CHAN = 4  # Number of channels to read from the CSV file
 
 NUM_PERIODS = 5  # Number of periods of the TX_FREQ to analyze in each block
 
-TX_FREQ = 1.0  # Frequency of the antenna in Hz
+TX_FREQ = 1  # Frequency of the antenna in Hz
 RX_FREQ = 4  # Sampling rate in Hz
 
 FILE = 'output.txt'  # Replace with your CSV file path

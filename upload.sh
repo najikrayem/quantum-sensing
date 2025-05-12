@@ -23,7 +23,7 @@ fi
 
 # Copy the UF2 file to the board
 echo "Copying the UF2 file to the board..."
-cp build/main.uf2 /mnt/e/ > /dev/null 2>&1
+cp build/tx-rx-fusion.uf2 /mnt/e/ > /dev/null 2>&1
 if [ $? -ne 0 ]; then
     echo "Failed to copy the UF2 file to the board. Exiting."
     exit 1
