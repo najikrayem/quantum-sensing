@@ -6,4 +6,3 @@ datasheets/**
 venv/**
 winvenv/**
 __pycache__/**
-pillow_code/**
