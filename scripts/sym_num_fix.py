@@ -1,6 +1,84 @@
 import pandas as pd
 import sys
 import io
+import numpy as np
+
+def proc_normalize(df, target_count, x_avg, y_avg, x_std, y_std):
+
+    # Step 1: Find groups where sym == 0
+    sym_zero_groups = df[df['sym'] == 0].groupby('sym_num')
+
+    # Step 2: Count rows in each group
+    group_sizes = sym_zero_groups.size()
+
+    # Step 3: Identify groups needing padding
+    to_pad = group_sizes[group_sizes < target_count]
+    to_truncate = group_sizes[group_sizes > target_count]
+
+    print(f"sym 0 to truncate: {to_truncate}")
+    print(f"sym 0 group_sizes: {group_sizes.value_counts()}")
+
+    # Step 3.1: Truncate groups that are too long
+    # Remove rows with sample_num in the to_truncate list
+    for sym_num_val, count in to_truncate.items():
+        indices_to_remove = df[(df['sym_num'] == sym_num_val) & (df['sym_num'] > target_count)].index
+        df.drop(indices_to_remove, inplace=True)
+        #df['removed_row'] = True  # Set the removed_row flag
+
+    # Step 4: Create padding rows
+    new_rows = []
+    for sym_num_val, count in to_pad.items():
+        num_to_add = target_count - count
+
+        # Create a template row with default values
+        template = df[df['sym_num'] == sym_num_val].iloc[-1].copy()
+        for _ in range(num_to_add):
+            template['sample_num'] = template['sample_num'] + 1
+            template['x'] = int(np.random.normal(x_avg, x_std))
+            template['y'] = int(np.random.normal(y_avg, y_std))
+            new_rows.append(template.copy())
+
+    # Step 5: Append and reset index if needed
+    if new_rows:
+        df = pd.concat([df, pd.DataFrame(new_rows)], ignore_index=True)
+    df = df.sort_values(by=['sym_num', 'sample_num']).reset_index(drop=True)
+    df['sample_num'] = df.index
+
+    # Step 6: truncate the sym_1 groups to the target_count
+    sym_one_groups = df[df['sym'] == 1].groupby('sym_num')
+    for sym_num_val, group in sym_one_groups:
+        group_length = len(group)
+        if group_length > target_count:
+            # Remove the last rows to truncate
+            indices_to_remove = group.index[-(group_length - target_count):]
+            df.drop(indices_to_remove, inplace=True)
+
+    # Step 7: Reset the index
+    df = df.reset_index(drop=True)
+    df['sample_num'] = df.index
+
+    # Step 8: pad the sym_1 groups to the target_count
+    sym_one_groups = df[df['sym'] == 1].groupby('sym_num')
+    for sym_num_val, group in sym_one_groups:
+        group_length = len(group)
+        if group_length < target_count:
+            num_to_add = target_count - group_length
+            # Create a template row with default values
+            template = group.iloc[-1].copy()
+            for _ in range(num_to_add):
+                template['sample_num'] = template['sample_num'] + 1
+                template['x'] = int(np.random.normal(x_avg, x_std))
+                template['y'] = int(np.random.normal(y_avg, y_std))
+                df = pd.concat([df, pd.DataFrame([template.copy()])], ignore_index=True)
+
+    # Step 9: Reset the index again
+    df = df.sort_values(by=['sym_num', 'sample_num']).reset_index(drop=True)
+    df['sample_num'] = df.index
+
+    return df
+#end proc_normalize
+
+
 
 
 def proc_df(df):
@@ -41,6 +119,24 @@ def proc_df(df):
         greatest_bit_num = df['bit_num'].max()
         print(f"Removing the last bit at index {greatest_bit_num}")
         df = df[df['bit_num'] != greatest_bit_num]
+    
+
+    # make all NO_TONE envelopes equal in length to the TONE envelopes if the flag "-norm" is set
+    if "-norm" in sys.argv:
+
+        # Get the most common lengths of the sym_num_1 groups
+        sym_one = df[df['sym'] == 1]
+        sym_one_lengths = sym_one.groupby('sym_num').size()
+        most_common_length = sym_one_lengths.mode()[0]
+
+        # Get x and y distributions of the sym_num_0 groups
+        sym_zero = df[df['sym'] == 0]
+        x_avg = sym_zero['x'].mean()
+        x_std = sym_zero['x'].std()
+        y_avg = sym_zero['y'].mean()
+        y_std = sym_zero['y'].std()
+
+        df = proc_normalize(df, most_common_length, x_avg, y_avg, x_std, y_std)
     
     return df
 
