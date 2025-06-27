@@ -1,1 +1,1 @@
-# qunatum-sensing
+# quantum-sensing
