@@ -3,7 +3,7 @@ import sys
 import pandas as pd
 import os
 from datetime import datetime
-time_format = "%Y-%m-%dT%H:%M:%S%z"
+time_format = "%Y-%m-%dT%H-%M-%S%z"
 file = open(sys.argv[1], 'r')
 first = True
 rewrite_flag = False
