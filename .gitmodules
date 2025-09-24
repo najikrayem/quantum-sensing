@@ -1,0 +1,3 @@
+[submodule "magvis"]
+	path = magvis
+	url = https://github.com/najikrayem/magvis.git
