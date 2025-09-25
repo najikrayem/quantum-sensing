@@ -1,3 +1,6 @@
 [submodule "magvis"]
 	path = magvis
 	url = https://github.com/najikrayem/magvis.git
+[submodule "pico-sdk"]
+	path = pico-sdk
+	url = https://github.com/raspberrypi/pico-sdk.git

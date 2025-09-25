@@ -3,3 +3,4 @@ build/**
 output.txt
 data_to_keep/**
 datasheets/**
+ignorefornow/**
