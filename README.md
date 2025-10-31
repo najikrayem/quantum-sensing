@@ -45,12 +45,22 @@ You also need the Visual Studio code IDE with the PlatformIO extension installed
         ```
      2. Go to [**GitHub → Settings → SSH and GPG Keys**](https://github.com/settings/keys) and paste the key there.
 
-2. Clone the project locally 
+2. Clone the project locally and change the directory to it
  ``` bash
  git clone https://github.com/najikrayem/quantum-sensing.git
+ cd quantum-sensing
  ```
 
 3. Initialize Submodules. This will install things like the PICO-SDK submodule which is necessary for the RP2350 board.
 ``` bash
 git submodule init
+git submodule update --init --recursive
+```
+
+4. Configure and build the program
+``` bash
+cmake -S . -B build -DPICO_BOARD=pico2
+cd build
+make
+cd ..
 ```
